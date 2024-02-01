@@ -1,5 +1,6 @@
 const Food = require("../models/food");
 const FoodIntake = require('../models/foodIntake')
+const moment = require("moment-timezone");
 
 const addFood = async (req, res) => {
   try {
@@ -175,10 +176,28 @@ const addFoodTouser = async (req, res) => {
 
 const removeFoodHistory = async (req,res)=>{
   try{
-    const entryId = req.query.id
-    const fooddData = await FoodIntake.findByIdAndDelete({_id:entryId})
-    console.log(fooddData)
-    res.status(200).json({foodHistory:fooddData})
+    const userId = req.query.userId;
+    console.log(userId)
+    const entryId = req.query.entryId
+    console.log(entryId)
+    const selectedDate = req.query.selectedDate;
+    const foodDataRemoved = await FoodIntake.findByIdAndDelete({_id:entryId})
+    const momentDate = moment.tz(selectedDate, "Asia/Kolkata");
+    const startDate = momentDate.clone().startOf("day");
+    const endDate = momentDate.clone().endOf("day");
+    const foodData = await FoodIntake.find({userId:userId})
+
+    const foodHistory = foodData.filter((entry)=>{
+      const recordDate = moment.tz(entry.date, "Asia/Kolkata")
+      return recordDate.isSameOrAfter(startDate) && recordDate.isSameOrBefore(endDate)
+    })
+    const todayCalorieIntake = foodHistory.reduce((totalCalories, record) => {
+      const caloriesWithQuantity = record.calories * record.quantity
+      return totalCalories + caloriesWithQuantity
+    }, 0);
+   
+    console.log(foodData)
+    res.status(200).json({updatedCalories: todayCalorieIntake,foodHistory:foodData})
 
   }catch(err){
     console.log(err)

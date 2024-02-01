@@ -18,11 +18,19 @@ const userSchema = new mongoose.Schema({
         default:false
     },
     weightHistory: [{
-        name: { type: String, required: true,default:'Weight' },
-        type: { type: String,default:'weight' },
-        date: { type: Date},
-        weight: { type: Number},
-        unit: { type: String}
+        id: { type: mongoose.Schema.Types.ObjectId, ref: 'WeightEntry' },
+        name: { type: String, required: true, default: 'Weight' },
+        type: { type: String, default: 'weight' },
+        date: { type: Date },
+        weight: { type: Number },
+        unit: { type: String }
+    }],
+    subscription: [{
+        planId: { type: mongoose.Schema.Types.ObjectId, ref: 'plan'},
+        planeName:{ type:String},
+        startDate: { type: Date },
+        endDate: { type: Date },
+        isActive: { type: Boolean},
     }]
 });
 

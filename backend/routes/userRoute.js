@@ -4,6 +4,8 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const foodController = require('../controllers/foodController')
 const trakcerController = require('../controllers/trackerController')
+const workoutController = require('../controllers/workoutController')
+const planController = require('../controllers/planController')
 
 router.get('/', userController.loadIndex);
 router.post('/signup',userController.postSignup)
@@ -23,5 +25,12 @@ router.get('/getuser',trakcerController.getUser)
 router.get('/getuserfoodhistoory', trakcerController.getUserFoodHistory)
 router.get('/weighthistorytracker',trakcerController.weightHistoryTracker)
 router.get('/deletefoodentry',foodController.removeFoodHistory)
+router.get('/deleteweightentry',trakcerController.removeWeightEntry)
+router.post('/addworkout',workoutController.addWorkout)
+router.get('/getworkouthistory',workoutController.getWorkoutHistory)
+router.get('/removeworkout',workoutController.remveWorkoutEntry)
+router.get('/getplans', planController.getPlan)
+router.post('/userplanupdate', planController.userPlanUpdate)
+router.get('/checkssubscription', planController.checkSubscription)
 
 module.exports = router;

@@ -1,94 +1,90 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
+const nodeMailer = require("nodemailer");
+require("dotenv").config();
+const argon2 = require("argon2");
+const user = require("../models/user");
+const { use } = require("../routes/userRoute");
 
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const User = require('../models/user')
-const nodeMailer = require('nodemailer')
-require('dotenv').config()
-const argon2 = require('argon2')
-const user = require('../models/user')
-const { use } = require('../routes/userRoute')
-
-let userDataMap1 = {}
-
+let userDataMap1 = {};
 
 const securePassword = async (password) => {
-    try {
-      const passwordHash = await bcrypt.hash(password, 10);
-      return passwordHash;
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-const loadIndex=  async(req,res)=>{
-    try{
-        console.log("hiii")
-        res.json({ success: true })
-    }catch(err){
-        console.log(err)
-    }
-}
-
-const generateOtp = async(email)=>{
-  const otp = Math.floor(1000 + Math.random() * 9000).toString();
-  console.log(email)
-  const otpData = {
-    email:email,
-    otp:otp,
-    creationTime: Date.now()
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+    return passwordHash;
+  } catch (error) {
+    console.log(error.message);
   }
-return otpData
-}
+};
+const loadIndex = async (req, res) => {
+  try {
+    console.log("hiii");
+    res.json({ success: true });
+  } catch (err) {
+    console.log(err);
+  }
+};
 
-const sendMail = async(name,email,otp) => {
-    try{
-      //const otp = await generateOtp(email)
-      console.log(otp)
-    
-      const transporter = nodeMailer.createTransport({
-        host:"smtp.gmail.com",
-        port: 587,
-        secure: false,
-        requireTLS: true,
-        auth:{
-          user: process.env.EMAIL,
-          pass:  process.env.PASSWORD
-        },
-        tls:{
-          rejectUnauthorized: false
-        }
-      })  
-      const mailOptions ={
-        from: process.env.EMAIL,
-        to : email,
-        cc: process.env.EMAIL,
-        subject: 'OTP Verification',
-        text: `Hello ${name}, your otp is ${otp}`
+const generateOtp = async (email) => {
+  const otp = Math.floor(1000 + Math.random() * 9000).toString();
+  console.log(email);
+  const otpData = {
+    email: email,
+    otp: otp,
+    creationTime: Date.now(),
+  };
+  return otpData;
+};
+
+const sendMail = async (name, email, otp) => {
+  try {
+    //const otp = await generateOtp(email)
+    console.log(otp);
+
+    const transporter = nodeMailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+    const mailOptions = {
+      from: process.env.EMAIL,
+      to: email,
+      cc: process.env.EMAIL,
+      subject: "OTP Verification",
+      text: `Hello ${name}, your otp is ${otp}`,
+    };
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error.message);
+      } else {
+        console.log("email has been sent" + info.response);
       }
-      transporter.sendMail(mailOptions, function(error, info){
-        if(error){
-          console.log(error.message)
-        }else{
-          console.log("email has been sent" + info.response)
-        }
-        return otp
-      })
-    }catch(err){
-      console.log(err)
-    }
-
-}
+      return otp;
+    });
+  } catch (err) {
+    console.log(err);
+  }
+};
 const postSignup = async (req, res) => {
   try {
     const existUser = await User.findOne({ email: req.body.email });
     const userData1 = await User.findOne({ mobile: req.body.mobileNumber });
-    const email =req.body.email.toLowerCase()
-    console.log(email)
+    const email = req.body.email.toLowerCase();
+    console.log(email);
     // Initialize userDataMap as an empty object if it doesn't exist
-
 
     if (existUser == null && userData1 == null) {
       // Create instance-specific variables
-      
+
       const otpData = await generateOtp(email);
 
       // Store data in an object specific to this user
@@ -98,7 +94,7 @@ const postSignup = async (req, res) => {
         mobile: req.body.mobileNumber,
         password: req.body.password,
         otp: otpData.otp,
-        creationTime: otpData.creationTime
+        creationTime: otpData.creationTime,
       };
 
       // Store user data in the userDataMap with email as the key
@@ -107,11 +103,11 @@ const postSignup = async (req, res) => {
       // Send OTP
       sendMail(userData.name, userData.email, userData.otp);
 
-      res.status(200).json({message:"otp has been sent, Please verify otp"});
+      res.status(200).json({ message: "otp has been sent, Please verify otp" });
     } else if (existUser) {
-      res.status(200).json({ message: 'Email ID already exists' });
+      res.status(200).json({ message: "Email ID already exists" });
     } else if (userData1) {
-      res.status(200).json({ message: 'Mobile number already exists' });
+      res.status(200).json({ message: "Mobile number already exists" });
     }
   } catch (err) {
     console.log(err);
@@ -174,7 +170,7 @@ const verifyOTP = async (req, res) => {
   try {
     console.log("otp");
     const { email, otp } = req.body;
-    
+
     // Get user data from the userDataMap based on the email
     const userData = userDataMap1[email];
     console.log(userData);
@@ -194,9 +190,11 @@ const verifyOTP = async (req, res) => {
 
           if (existingUser) {
             console.log(email);
-            res.status(200).json({ message: 'success', userStatus: 'existing user' });
+            res
+              .status(200)
+              .json({ message: "success", userStatus: "existing user" });
           } else {
-            console.log('hiii');
+            console.log("hiii");
             const password = await argon2.hash(userData.password); // Use password from userData
             const user = new User({
               name: userData.name,
@@ -205,26 +203,24 @@ const verifyOTP = async (req, res) => {
               password: password,
             });
             const savedUser = await user.save();
-            res.status(200).json({ message: 'success', userStatus: 'new user' });
+            res
+              .status(200)
+              .json({ message: "success", userStatus: "new user" });
           }
         } else {
-          res.status(200).json({ message: 'invalid OTP' });
+          res.status(200).json({ message: "invalid OTP" });
         }
       } else {
-        res.status(200).json({ message: 'OTP has expired' });
+        res.status(200).json({ message: "OTP has expired" });
       }
     } else {
-      res.status(200).json({ message: 'Invalid email' });
+      res.status(200).json({ message: "Invalid email" });
     }
   } catch (err) {
     console.log(err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
-
-
-
 
 const verifyLogin = async (req, res) => {
   try {
@@ -236,33 +232,51 @@ const verifyLogin = async (req, res) => {
 
       if (passwordMatch) {
         if (userData.isBlocked === true) {
-          res.status(401).json({ message: 'You are blocked' });
+          res.status(401).json({ message: "You are blocked" });
         } else {
-          console.log(userData.role)
+          const currentDate = new Date();
+          if (userData.subscription && userData.subscription.length > 0) {
+            const activeSubscription = userData.subscription.find(
+              (sub) => sub.isActive
+            );
+            if (
+              activeSubscription &&
+              activeSubscription.endDate > currentDate
+            ) {
+              console.log("Subscription is active");
+            } else {
+              await user.updateOne(
+                { _id: userData._id, "subscription.isActive": true },
+                { $set: { "subscription.$.isActive": false } }
+              );
+              console.log("Subscription expired, isActive updated to false");
+            }
+          }
+          console.log(userData.role);
           const response = {
             id: userData._id,
             role: userData.role,
             name: userData.name,
             mobile: userData.mobile,
             email: userData.email,
-            hasFilledProfile: userData.hasFilledProfile // add this line
+            hasFilledProfile: userData.hasFilledProfile,
           };
-          
+
           const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
-            expiresIn: "8h"
+            expiresIn: "8h",
           });
-          
-          res.status(200).json({ message: 'Success',token:accessToken });
+
+          res.status(200).json({ message: "Success", token: accessToken });
         }
       } else {
-        res.status(401).json({ message: 'Invalid email ID or password' });
+        res.status(401).json({ message: "Invalid email ID or password" });
       }
     } else {
-      res.status(404).json({ message: 'User not found' });
+      res.status(404).json({ message: "User not found" });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Internal Server Error' });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -279,7 +293,7 @@ const forgotPassword = async (req, res) => {
         email: userData.email,
         otp: otpData.otp,
         creationTime: otpData.creationTime,
-        count:3
+        count: 3,
       };
       console.log(userData1);
       userDataMap1[req.body.email] = userData1;
@@ -294,175 +308,181 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-const resendOtp = async(req,res) =>{
-  try{
+const resendOtp = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const userData = userDataMap1[email];
+    if (userData.count > 0) {
+      console.log(userData.count);
 
-    const email = req.body.email
-    const userData =userDataMap1[email]
-  if(userData.count >0){
-    
-    console.log(userData.count)
-    
-    const otpData = await generateOtp(email)
-    userDataMap1[email] = {otp:otpData.otp,creationTime:otpData.creationTime,count:userData.count--}
-    
-    sendMail(userData.name, userData.email, otpData.otp);
-    res.status(200).json({ message: "otp has been resent, Please verify otp" });
-  }else{
-    res.status(200).json({message:"Tried maximum"})
-  }
+      const otpData = await generateOtp(email);
+      userDataMap1[email] = {
+        otp: otpData.otp,
+        creationTime: otpData.creationTime,
+        count: userData.count--,
+      };
 
-  }catch(err){
-    console.log(err)
-  }
-
-}
-
-const resetPassword = async(req,res)=>{
-  try{
-    const email = req.body.email
-    const securePassword = await argon2.hash(req.body.password)
-    const userData = await User.findOneAndUpdate({email:email},{$set:{password:securePassword}})
-    console.log("rest")
-    res.status(200).json({message:"password has been reset"})
-
-  }catch(err){
-    console.log(err)
-  }
-}
-
-const updateProfile = async(req,res)=>{
-  try{
-    const id = req.body.id
-    const userData = await User.findByIdAndUpdate({_id:id},{
-      gender:req.body.userData.gender,
-      dateOfBirth:req.body.userData.dob,
-      height:req.body.userData.height,
-      weight:req.body.userData.weight,
-      hasFilledProfile: true
-    })
-    await User.findByIdAndUpdate({_id:id}, {
-      $push: {
-        weightHistory: {
-          date: new Date(),
-          weight: req.body.userData.weight,
-          unit:'kg'
-        }
-      }
-    });
-    if(userData){
-      res.json({message:'success'})
+      sendMail(userData.name, userData.email, otpData.otp);
+      res
+        .status(200)
+        .json({ message: "otp has been resent, Please verify otp" });
+    } else {
+      res.status(200).json({ message: "Tried maximum" });
     }
-  }catch(err){
-    console.log(err)
+  } catch (err) {
+    console.log(err);
   }
-      
-  }
+};
 
-  const checkFilled = async (req, res) => {
-    try{
-      const id = req.query.id;
-      const userData = await user.findById({ _id: id });
-     
-      if (!userData) {
-        return res.status(404).json({ error: "User not found" });
+const resetPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+    const securePassword = await argon2.hash(req.body.password);
+    const userData = await User.findOneAndUpdate(
+      { email: email },
+      { $set: { password: securePassword } }
+    );
+    console.log("rest");
+    res.status(200).json({ message: "password has been reset" });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const id = req.body.id;
+    const userData = await User.findByIdAndUpdate(
+      { _id: id },
+      {
+        gender: req.body.userData.gender,
+        dateOfBirth: req.body.userData.dob,
+        height: req.body.userData.height,
+        weight: req.body.userData.weight,
+        hasFilledProfile: true,
       }
-  
-      // Assuming hasFilledProfile is a boolean field in the user schema
-      const hasFilledProfile = userData.hasFilledProfile;
-      // Send a response indicating whether the user has filled the profile or not
-      res.json({ hasFilledProfile });
-    }catch(err){
-      console.log(err);
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  };
-  
-  const isBlocked = async(req,res) =>{
-    try{
-      const id = req.query.id;
-      const userData = await user.findById({ _id: id });
-     
-      if (!userData) {
-        return res.status(404).json({ error: "User not found" });
+    );
+    await User.findByIdAndUpdate(
+      { _id: id },
+      {
+        $push: {
+          weightHistory: {
+            date: new Date(),
+            weight: req.body.userData.weight,
+            unit: "kg",
+          },
+        },
       }
-  
-      // Assuming hasFilledProfile is a boolean field in the user schema
-      const isBlocked = userData.isBlocked;
-      console.log(isBlocked)
-      // Send a response indicating whether the user has filled the profile or not
-      res.json({ isBlocked });
-    }catch(err){
-      console.log(err)
+    );
+    if (userData) {
+      res.json({ message: "success" });
     }
+  } catch (err) {
+    console.log(err);
   }
-const updateWeight = async(req,res)=>{
-  try{
-    const {id,weight}=  req.body
+};
 
-    const userData = await user.findById({_id:id})
+const checkFilled = async (req, res) => {
+  try {
+    const id = req.query.id;
+    const userData = await user.findById({ _id: id });
 
-    if(!userData){
+    if (!userData) {
       return res.status(404).json({ error: "User not found" });
     }
-    await user.findByIdAndUpdate(id, { $set: { weight:weight.weight } });
+
+    // Assuming hasFilledProfile is a boolean field in the user schema
+    const hasFilledProfile = userData.hasFilledProfile;
+    // Send a response indicating whether the user has filled the profile or not
+    res.json({ hasFilledProfile });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const isBlocked = async (req, res) => {
+  try {
+    const id = req.query.id;
+    const userData = await user.findById({ _id: id });
+
+    if (!userData) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isBlocked = userData.isBlocked;
+    console.log(isBlocked);
+    res.json({ isBlocked });
+  } catch (err) {
+    console.log(err);
+  }
+};
+const updateWeight = async (req, res) => {
+  try {
+    const { id, weight } = req.body;
+
+    const userData = await user.findById({ _id: id });
+
+    if (!userData) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    await user.findByIdAndUpdate(id, { $set: { weight: weight.weight } });
     await user.findByIdAndUpdate(id, {
       $push: {
         weightHistory: {
           date: new Date(),
           weight: weight.weight,
-          unit: weight.unit
-        }
-      }
+          unit: weight.unit,
+        },
+      },
     });
-    
-    const today = new Date()
-    today.setUTCHours(0,0,0,0)
-    const user1 =await User.findById({_id:id})
-    const todayWeightRecord = user1.weightHistory.filter(record=>{
-      const recordDate = new Date(record.date)
-      console.log(recordDate)
+
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    const user1 = await User.findById({ _id: id });
+    const todayWeightRecord = user1.weightHistory.filter((record) => {
+      const recordDate = new Date(record.date);
+      console.log(recordDate);
       recordDate.setUTCHours(0, 0, 0, 0);
       return recordDate.getTime() === today.getTime();
-    })
-  const userD = await user.findById({_id:id})
-    res.json({todayWeightRecord:todayWeightRecord,userData:userD})
-  }catch(err){
-    console.log(err)
+    });
+    const userD = await user.findById({ _id: id });
+    res.json({ todayWeightRecord: todayWeightRecord, userData: userD });
+  } catch (err) {
+    console.log(err);
   }
-}
+};
 
-const getWeightHistory = async(req,res)=>{
-  try{
-    const userId = req.query.id
-    const tenWeeksAgo = new Date()
-    tenWeeksAgo.setDate(tenWeeksAgo.getDate() - 7*10)
-    const userData = await user.findById({_id:userId})
-    if(!userData){
-      return res.json({message:"user not found"})
+const getWeightHistory = async (req, res) => {
+  try {
+    const userId = req.query.id;
+    const tenWeeksAgo = new Date();
+    tenWeeksAgo.setDate(tenWeeksAgo.getDate() - 7 * 10);
+    const userData = await user.findById({ _id: userId });
+    if (!userData) {
+      return res.json({ message: "user not found" });
     }
 
-    const weightHistory = userData.weightHistory.filter(entry =>{
-      return entry.date >= tenWeeksAgo
-    })
+    const weightHistory = userData.weightHistory.filter((entry) => {
+      return entry.date >= tenWeeksAgo;
+    });
 
     res.status(200).json({ weightHistory: weightHistory });
-
-  }catch(err){
-    console.log(err)
+  } catch (err) {
+    console.log(err);
   }
-}
+};
 module.exports = {
-    loadIndex,
-    postSignup,
-    verifyOTP,
-    verifyLogin,
-    forgotPassword,
-    resetPassword,
-    resendOtp,
-    updateProfile,
-    checkFilled,
-    isBlocked,
-    updateWeight,
-    getWeightHistory
-}
+  loadIndex,
+  postSignup,
+  verifyOTP,
+  verifyLogin,
+  forgotPassword,
+  resetPassword,
+  resendOtp,
+  updateProfile,
+  checkFilled,
+  isBlocked,
+  updateWeight,
+  getWeightHistory,
+};
