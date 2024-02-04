@@ -82,12 +82,14 @@ const userPlanUpdate = async (req, res) => {
                 $push: {
                     subscription: {
                         planId: planId,
-                        planName: planData.planName,
+                        planName: planData.planType,
                         startDate: startDate,
                         endDate: endDate,
                         isActive: true
                     }
-                }
+                },
+                isSubscribed:true,
+                currentPlan: planData.planType
             },
             { new: true }
         );
@@ -104,21 +106,29 @@ const checkSubscription = async(req,res)=>{
         const userid = req.query.userId
         const userData = await User.findById(userid)
         console.log(userData)
-        if(userData.subscription && userData.subscription.length > 0){
-            const activeSubscription = userData.subscription.find(sub=>sub.isActive)
-            console.log("Active: "+activeSubscription)
-           
-            if(activeSubscription.isActive === true ){
+            if(userData.isSubscribed === true ){
                 console.log("Active user")
                 res.status(200).json({isActive:true})
             }else{
                 res.status(200).json({isActive:false})
             }
-        }
+        
 
     }catch(err){
         console.error(err);
         res.status(500).json({ message: 'Error updating user subscription plan' });
+    }
+}
+
+const getUserPlan = async(req,res)=>{
+    try{
+        const userId = req.query.userId
+        const user = await User.findById(userId).select('currentPlan')
+        planName = user.currentPlan
+        console.log(planName)
+        res.status(200).json({planName});
+    }catch(err){
+        console.log(err)
     }
 }
 module.exports = {
@@ -127,5 +137,6 @@ module.exports = {
     getPlanWithId,
     editPlan,
     userPlanUpdate,
-    checkSubscription
+    checkSubscription,
+    getUserPlan
 }

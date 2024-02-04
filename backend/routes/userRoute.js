@@ -6,6 +6,7 @@ const foodController = require('../controllers/foodController')
 const trakcerController = require('../controllers/trackerController')
 const workoutController = require('../controllers/workoutController')
 const planController = require('../controllers/planController')
+const Trinaercontroller = require('../controllers/userTrainerController')
 
 router.get('/', userController.loadIndex);
 router.post('/signup',userController.postSignup)
@@ -32,5 +33,7 @@ router.get('/removeworkout',workoutController.remveWorkoutEntry)
 router.get('/getplans', planController.getPlan)
 router.post('/userplanupdate', planController.userPlanUpdate)
 router.get('/checkssubscription', planController.checkSubscription)
-
+router.get('/gettrianers',Trinaercontroller.gettrianers)
+router.get('/getTrainerbyid',Trinaercontroller.gettrainerById)
+router.get('/getuserplan',planController.getUserPlan)
 module.exports = router;

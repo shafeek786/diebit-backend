@@ -232,27 +232,18 @@ const verifyLogin = async (req, res) => {
 
       if (passwordMatch) {
         if (userData.isBlocked === true) {
-          res.status(401).json({ message: "You are blocked" });
+          return res.status(401).json({ message: "You are blocked" });
         } else {
           const currentDate = new Date();
-          if (userData.subscription && userData.subscription.length > 0) {
-            const activeSubscription = userData.subscription.find(
-              (sub) => sub.isActive
-            );
-            if (
-              activeSubscription &&
-              activeSubscription.endDate > currentDate
-            ) {
-              console.log("Subscription is active");
-            } else {
+          if (userData.isSubscribed) {
+            const lastSubscription = userData.subscription.slice(-1)[0];
+            if (lastSubscription && lastSubscription.endDate < currentDate) {
               await user.updateOne(
-                { _id: userData._id, "subscription.isActive": true },
-                { $set: { "subscription.$.isActive": false } }
+                { _id: userData._id },
+                { $set: { isSubscribed: false } }
               );
-              console.log("Subscription expired, isActive updated to false");
             }
           }
-          console.log(userData.role);
           const response = {
             id: userData._id,
             role: userData.role,
@@ -266,19 +257,20 @@ const verifyLogin = async (req, res) => {
             expiresIn: "8h",
           });
 
-          res.status(200).json({ message: "Success", token: accessToken });
+          return res.status(200).json({ message: "Success", token: accessToken });
         }
       } else {
-        res.status(401).json({ message: "Invalid email ID or password" });
+        return res.status(401).json({ message: "Invalid email ID or password" });
       }
     } else {
-      res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
 
 const forgotPassword = async (req, res) => {
   try {

@@ -44,13 +44,9 @@ const trainerSchema = new mongoose.Schema({
     userName:{
         type:String
     },
-    proPic:{
+    proPic:[{
         type: String
-    },
-    plan:{
-        type:String,
-        default:'None'
-    },
+    }],
     weightHistory:[
         {
             date:{
@@ -72,6 +68,9 @@ const trainerSchema = new mongoose.Schema({
     status:{
         type:String,
         default:"Pending"
+    },
+    aboutMe:{
+        type:String
     }
 })
 

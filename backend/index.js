@@ -5,6 +5,7 @@ const userRoute = require('./routes/userRoute')
 const trainerRoute = require('./routes/trainerRoute')
 const adminRoute = require('./routes/adminRoute')
 const cors = require('cors')
+const path = require('path');
 
 const DB_URL = process.env.DB_URL
 mongoose.connect(DB_URL)
@@ -15,6 +16,7 @@ mongoose.connect(DB_URL)
         console.error(`Error connecting to MongoDB: `, error.message)
     })
 const app = express()
+app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(cors())
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
