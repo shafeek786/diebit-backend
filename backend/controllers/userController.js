@@ -251,12 +251,15 @@ const verifyLogin = async (req, res) => {
             mobile: userData.mobile,
             email: userData.email,
             hasFilledProfile: userData.hasFilledProfile,
+            isSubscribed: userData.isSubscribed,
+            currentPlan: userData.currentPlan
           };
 
           const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
             expiresIn: "8h",
           });
-
+          console.log(accessToken)
+          const decodedToken = jwt.decode(accessToken)
           return res.status(200).json({ message: "Success", token: accessToken });
         }
       } else {

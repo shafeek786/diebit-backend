@@ -1,19 +1,19 @@
 const jwt = require("jsonwebtoken");
 const argon2 = require("argon2");
 const Trainer = require("../models/trainer");
-const trainer = require("../models/trainer");
+const User = require("../models/user");
 const path = require("path");
 const cloudinary = require('cloudinary').v2;
+const Chat = require("../models/chat");
+const { Console } = require("console");
 
 require("dotenv").config();
 
 const verifyLogin = async (req, res) => {
   try {
     const email = req.body.email;
-    console.log(email);
 
     const userData = await Trainer.findOne({ email: email });
-    console.log(userData);
     if (userData) {
       const passwordMatch = await argon2.verify(
         userData.password,
@@ -27,7 +27,6 @@ const verifyLogin = async (req, res) => {
             .status(200)
             .json({ message: "You are blocked, Please contact admin" });
         } else {
-          console.log("login");
           const response = {
             id: userData._id,
             role: userData.role,
@@ -50,22 +49,43 @@ const verifyLogin = async (req, res) => {
 
 const signUp = async (req, res) => {
   try {
-    const existUser = await Trainer.findOne({ email: req.body.email });
-    const userData1 = await Trainer.findOne({ mobile: req.body.mobile });
-    const email = req.body.email.toLowerCase();
-    console.log(email);
-    // Initialize userDataMap as an empty object if it doesn't exist
+    const data = JSON.parse(req.body.data)
 
+    const images = req.files.image;
+    const email = data.email.toLowerCase();
+    const existUser = await Trainer.findOne({ email: email });
+    const userData1 = await Trainer.findOne({ mobile: data.mobileNumber });
+    console.log(data)
+let imagesPath = [];
+for (const image of images) {
+  try {
+    const result = await cloudinary.uploader.upload(image.path, {
+      folder: 'cerificates',
+      width:250,
+      height: 300,
+      crop:'fill'
+
+    });
+    imagesPath.push(result.secure_url);
+  } catch (uploadError) {
+    if (uploadError.http_code === 400 && uploadError.message.includes('File size too large. Got 15002367. Maximum is 10485760.')) {
+      return res.status(200).json({ message: 'File size too large. Maximum is 10MB.' });
+    } else {
+      throw uploadError;
+    }
+  }
+}
     if (existUser == null && userData1 == null) {
-      console.log(req.body.mobileNumber);
-      const password = await argon2.hash(req.body.password);
+      const password = await argon2.hash(data.password);
       const trainer = new Trainer({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: email,
-        mobile: req.body.mobileNumber,
-        qualification: req.body.qualification,
-        yearofexperience: req.body.yearofexperience,
+        mobile: data.mobileNumber,
+        qualification: data.qualification,
+        yearofexperience: data.yearofexperience,
+        category: data.profession,
+        certificate:imagesPath,
         password: password,
       });
       const saveTrainer = await trainer.save();
@@ -86,10 +106,8 @@ const signUp = async (req, res) => {
 const getTrainer = async (req, res) => {
   try {
     const trianerId = req.query.trainerId;
-    console.log(trianerId);
 
     const trainerData = await Trainer.findById(trianerId);
-    console.log(trainerData);
     res.status(200).json({ trainerData: trainerData });
   } catch (err) {
     console.log(err);
@@ -100,7 +118,6 @@ const updateTrainer = async (req, res) => {
   try {
     const trainerId = req.body.trainerId;
     const data = req.body.data;
-    console.log(data);
 
     const updatedData = await Trainer.findByIdAndUpdate(
       { _id: trainerId },
@@ -123,10 +140,8 @@ const updateTrainer = async (req, res) => {
 
 const profilePicUpload = async (req, res) => {
   try {
-    console.log("image")
     const trainerId = req.query.trainerId;
     const images = req.files.image;
-    console.log("image")
     let imagesPath = [];
     for (const image of images) {
       try {
@@ -160,10 +175,95 @@ const profilePicUpload = async (req, res) => {
     console.log(err);
   }
 };
+
+
+const getUsers = async (req, res) => {
+    try {
+        const trainerId = req.query.trainerId;
+
+        const userList = await User.find({ subscribedTrainer: trainerId });
+
+        
+        const unreadCounts = await getUnreadMessageCounts(trainerId);
+
+      
+        const userListWithUnreadCounts = userList.map(user => {
+            const unreadCount = unreadCounts.find(count => count._id.equals(user._id));
+            return {
+                ...user.toObject(), 
+                unreadMessageCount: unreadCount ? unreadCount.count : 0
+            };
+        });
+        userListWithUnreadCounts.sort((a, b) => b.lastMessageTimestamp - a.lastMessageTimestamp);
+        console.log(userListWithUnreadCounts)
+        res.status(200).json({ message: "Got users", userData: userListWithUnreadCounts });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error fetching users", error: err });
+    }
+};
+
+
+const getUnreadMessageCounts = async (trainerId) => {
+    try {
+        
+        const unreadCounts = await Chat.aggregate([
+            {
+                $match: {
+                    senderType: 'User', 
+                    sender: { $ne: trainerId },
+                    is_read: false 
+                }
+            },
+            {
+                $group: {
+                    _id: "$sender", 
+                    count: { $sum: 1 } 
+                }
+            }
+        ]);
+
+        return unreadCounts;
+    } catch (error) {
+        console.error("Error retrieving unread message counts:", error);
+        throw error;
+    }
+};
+
+const getSubscribedUser = async(req,res)=>{
+  try{
+    const trainerId = req.query.trainerId
+    const userData = await User.find({subscribedTrainer:trainerId})
+    res.status(200).json({userData});
+  }catch(err){
+    console.log(err)
+  }
+}
+
+const getSubscribedUserSearch = async(req,res)=>{
+  try{
+    const search = req.query.text
+    
+    const trainerId = req.query.trainerId
+    const userData = await User.find({
+      subscribedTrainer:trainerId,
+      $or: [
+        { name: { $regex: new RegExp(search, "i") } },
+       { email: { $regex: new RegExp(search, "i") } },
+     ],
+    })
+    res.status(200).json({userData});
+  }catch(err){
+    console.log(err)
+  }
+}
 module.exports = {
   verifyLogin,
   signUp,
   getTrainer,
   updateTrainer,
   profilePicUpload,
+  getUsers,
+  getSubscribedUser,
+  getSubscribedUserSearch
 };

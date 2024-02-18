@@ -5,6 +5,8 @@ const router = require('./userRoute');
 const trainerManageController = require('../controllers/trainerManagementcontroller')
 const foodController = require('../controllers/foodController')
 const planController = require('../controllers/planController')
+const jwtAuth = require('../middleware/auth');
+
 routerAdmin.use(express.urlencoded({extended:true}))
 routerAdmin.use(express.json())
 
@@ -13,24 +15,26 @@ routerAdmin.use(express.json())
 
 
 routerAdmin.post('/verifylogin',adminController.verifyLogin)
-routerAdmin.get('/trainerdashboard', adminController.loadTrainerDashboard)
-routerAdmin.get('/userdashboard', adminController.loadUserDashboard)
-routerAdmin.post('/search',adminController.loadSearch)
-routerAdmin.get('/toggleBlock',adminController.toggleBlock)
-routerAdmin.get('/toggleBlockTrainer', adminController.toggleBlockTrainer)
-routerAdmin.get('/trainerStatusChange', adminController.trainerStatusChange)
-routerAdmin.get('/delete',adminController.loadDelete)
-routerAdmin.post('/addfood',foodController.addFood)
-routerAdmin.get('/search', adminController.loadSearch)
-routerAdmin.get('/trainersearch', trainerManageController.loadTrainerSearch)
-routerAdmin.get('/loadfood', foodController.loadFood)
-routerAdmin.get('/toggleblockfood', foodController.toggleBlockFood)
-routerAdmin.get('/deleteitem', foodController.deleteItem)
-routerAdmin.get('/searchfood',foodController.foodSearch)
-routerAdmin.post('/addplan',planController.addPlan)
-routerAdmin.get('/getplans', planController.getPlan)
-routerAdmin.get('/getplanwithid', planController.getPlanWithId)
-routerAdmin.post('/editplan', planController.editPlan)
+routerAdmin.get('/trainerdashboard',jwtAuth, adminController.loadTrainerDashboard)
+routerAdmin.get('/userdashboard',jwtAuth, adminController.loadUserDashboard)
+routerAdmin.post('/search',jwtAuth,adminController.loadSearch)
+routerAdmin.get('/toggleBlock',jwtAuth,adminController.toggleBlock)
+routerAdmin.get('/toggleBlockTrainer',jwtAuth, adminController.toggleBlockTrainer)
+routerAdmin.get('/trainerStatusChange',jwtAuth, adminController.trainerStatusChange)
+routerAdmin.get('/delete',jwtAuth,adminController.loadDelete)
+routerAdmin.post('/addfood',jwtAuth,foodController.addFood)
+routerAdmin.get('/search', jwtAuth,adminController.loadSearch)
+routerAdmin.get('/trainersearch',jwtAuth, trainerManageController.loadTrainerSearch)
+routerAdmin.get('/loadfood', jwtAuth,foodController.loadFood)
+routerAdmin.get('/toggleblockfood', jwtAuth,foodController.toggleBlockFood)
+routerAdmin.get('/deleteitem', jwtAuth,foodController.deleteItem)
+routerAdmin.get('/searchfood',jwtAuth,foodController.foodSearch)
+routerAdmin.post('/addplan',jwtAuth,planController.addPlan)
+routerAdmin.get('/getplans',jwtAuth, planController.getPlan)
+routerAdmin.get('/getplanwithid', jwtAuth,planController.getPlanWithId)
+routerAdmin.post('/editplan', jwtAuth,planController.editPlan)
+routerAdmin.get('/deleteplan', jwtAuth,
+planController.deletPlan)
 
 
 

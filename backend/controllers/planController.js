@@ -131,6 +131,20 @@ const getUserPlan = async(req,res)=>{
         console.log(err)
     }
 }
+
+const deletPlan = async(req,res)=>{
+    try{
+        const planId = req.query.planId
+        console.log(planId)
+        await SubscriptionPlan.findByIdAndDelete({_id:planId})
+
+        const plans = await SubscriptionPlan.find()
+        console.log(plans)
+        res.status(200).json({plans:plans})
+    }catch(err){
+        console.log(err)
+    }
+}
 module.exports = {
     addPlan,
     getPlan,
@@ -138,5 +152,6 @@ module.exports = {
     editPlan,
     userPlanUpdate,
     checkSubscription,
-    getUserPlan
+    getUserPlan,
+    deletPlan
 }

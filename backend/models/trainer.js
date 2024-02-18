@@ -22,9 +22,21 @@ const trainerSchema = new mongoose.Schema({
     yearofexperience:{
         type:Number
     },
+    walletBalance:{
+        type:Number,
+        default:0
+    },
     password:{
         type: String
     },
+    category:{
+        type:String,
+        required:true
+    },
+    certificate:[{
+        type:String,
+        required: true
+    }],
     role:{
         type:String,
         default:'Trainer'
@@ -35,35 +47,16 @@ const trainerSchema = new mongoose.Schema({
     dateOfBirth:{
         type:Date
     },
-    height:{
-        type:Number
-    },
-    weight:{
-        type: Number
-    },
     userName:{
         type:String
     },
     proPic:[{
         type: String
     }],
-    weightHistory:[
-        {
-            date:{
-                type: Date
-            },
-            weight:{
-                type: Number
-            }
-        }
-    ],
+  
     isBlocked:{
         type:Boolean,
         default:false
-    },
-    hasFilledProfile: {
-        type: Boolean,
-        default: false
     },
     status:{
         type:String,
