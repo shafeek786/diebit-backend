@@ -30,7 +30,7 @@ let server = http.Server(app);
 const io = require('socket.io')(server,{       
     pingTimeout: 60000,
     cors:{
-        origin:'*',
+        origin:'http://localhost:4200',
          methods: ['GET','POST'] 
         
     }
@@ -110,9 +110,9 @@ io.on('connection', (socket) => {
 app.use('/images', express.static(path.join(__dirname, 'images')));
 app.use(express.urlencoded({extended:true}))
 app.use(express.json())
-app.use('/',userRoute)
-app.use('/admin',adminRoute)
-app.use('/trainer',trainerRoute)
+app.use('/api',userRoute)
+app.use('/api/admin',adminRoute)
+app.use('/api/trainer',trainerRoute)
 
 
 
