@@ -30,7 +30,7 @@ let server = http.Server(app);
 const io = require('socket.io')(server,{       
     pingTimeout: 60000,
     cors:{
-        origin:'http://localhost:4200',
+        origin:'*',
          methods: ['GET','POST'] 
         
     }

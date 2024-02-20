@@ -4,12 +4,12 @@ const app = express();
 
 // Load secret key securely (e.g., from environment variables)
 const secretKey = process.env.ACCESS_TOKEN || 'your_secret_key_here';
-
+console.log(secretKey)
 // Middleware function for JWT-based authentication
 const verifyToken = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-
+    console.log(authHeader)
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({ message: 'Unauthorized: Missing or invalid token' });
     }

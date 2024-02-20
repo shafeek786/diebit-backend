@@ -252,28 +252,31 @@ const verifyLogin = async (req, res) => {
             email: userData.email,
             hasFilledProfile: userData.hasFilledProfile,
             isSubscribed: userData.isSubscribed,
-            currentPlan: userData.currentPlan
+            currentPlan: userData.currentPlan,
           };
 
           const accessToken = jwt.sign(response, process.env.ACCESS_TOKEN, {
             expiresIn: "8h",
           });
-          console.log(accessToken)
-          const decodedToken = jwt.decode(accessToken)
-          return res.status(200).json({ message: "Success", token: accessToken });
+          console.log(accessToken);
+          const decodedToken = jwt.decode(accessToken);
+          return res
+            .status(200)
+            .json({ message: "Success", token: accessToken });
         }
       } else {
-        return res.status(401).json({ message: "Invalid email ID or password" });
+        return res
+          .status(200)
+          .json({ message: "Invalid email ID or password" });
       }
     } else {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(200).json({ message: "User not found" });
     }
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 
 const forgotPassword = async (req, res) => {
   try {
