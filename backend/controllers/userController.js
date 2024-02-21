@@ -267,7 +267,7 @@ const verifyLogin = async (req, res) => {
       } else {
         return res
           .status(200)
-          .json({ message: "Invalid email ID or password" });
+          .json({ message: "Wrong email ID or password" });
       }
     } else {
       return res.status(200).json({ message: "User not found" });
