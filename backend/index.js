@@ -21,6 +21,7 @@ app.use(
       origin: [
         "http://localhost:4200",
         "https://www.diebit.world",
+        "https://diebit.world",
       ],
       methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
       credentials: true,
@@ -36,6 +37,8 @@ const io = require('socket.io')(server,{
       origin: [
         "http://localhost:4200",
         "https://www.diebit.world",
+        "https://diebit.world",
+
        
       ],
          methods: ['GET','POST'] 
