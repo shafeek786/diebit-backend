@@ -18,7 +18,10 @@ mongoose.connect(DB_URL)
 const app = express()
 app.use(
     cors({
-      origin: '*',
+      origin: [
+        "http://localhost:4200",
+        "https://www.diebit.world",
+      ],
       methods: ["GET", "POST", "DELETE", "PUT", "PATCH"],
       credentials: true,
     })
@@ -32,7 +35,7 @@ const io = require('socket.io')(server,{
     cors:{
       origin: [
         "http://localhost:4200",
-        "https://diebit.world",
+        "https://www.diebit.world",
        
       ],
          methods: ['GET','POST'] 
