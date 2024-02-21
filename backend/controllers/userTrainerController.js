@@ -77,7 +77,7 @@ const subscribeTrainer = async (req, res) => {
   }
 };
 
-const getUnreadMessageCounts = async (userId,roomId) => {
+const getUnreadMessageCounts = async (userId) => {
   try {
     const unreadCounts = await Chat.aggregate([
       {
@@ -85,7 +85,7 @@ const getUnreadMessageCounts = async (userId,roomId) => {
           senderType: "Trainer",
           sender: { $ne: userId },
           is_read: false,
-          room: roomId, // Add receiver condition to filter by userId
+          receiver: userId, // Add receiver condition to filter by userId
           
         },
       },
@@ -119,9 +119,7 @@ const getSubscribedTrainer = async (req, res) => {
 
     const trainerId = userData.subscribedTrainer;
     console.log("trainerId:", trainerId);
-    const room = await Chatromm.findOne({ userId, trainerId });
-    const roomId = room._id
-    console.log("room: "+  roomId)
+
     if (trainerId === "none") {
       return res
         .status(404)
@@ -135,7 +133,7 @@ const getSubscribedTrainer = async (req, res) => {
       return res.status(404).json({ message: "Trainer not found" });
     }
 
-    const unreadCounts = await getUnreadMessageCounts(userId,roomId);
+    const unreadCounts = await getUnreadMessageCounts(userId);
     console.log(unreadCounts);
     const unreadMessageCount = unreadCounts.length > 0 ? unreadCounts[0].count : 0;
 

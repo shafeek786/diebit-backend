@@ -15,6 +15,16 @@ const chatSchema = new mongoose.Schema({
         enum: ['User', 'Trainer'],
         // required: true,
       },
+      receiver:{
+        type: mongoose.Schema.Types.ObjectId,
+        // required: true,
+        refPath: 'receiverType',
+      },
+      receiverType: {
+        type: String,
+        enum: ['User', 'Trainer'],
+        // required: true,
+      },
       content: {
         type: String,
       },
